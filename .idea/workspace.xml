@@ -4,14 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f1a4e183-d69a-4ae6-85ad-1bd52558292d" name="变更" comment="first">
-      <change beforePath="$PROJECT_DIR$/.github/ISSUE_TEMPLATE/bug.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.github/ISSUE_TEMPLATE/enhancement.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.github/ISSUE_TEMPLATE/question.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.github/workflows/ci-testing.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.github/workflows/stale.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitmodules" beforeDir="false" afterPath="$PROJECT_DIR$/.gitmodules" afterDir="false" />
-    </list>
+    <list default="true" id="f1a4e183-d69a-4ae6-85ad-1bd52558292d" name="变更" comment="first" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -84,7 +77,21 @@
       <option name="project" value="LOCAL" />
       <updated>1682565149638</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="first">
+      <created>1682570564736</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1682570564736</updated>
+    </task>
+    <task id="LOCAL-00003" summary="first">
+      <created>1682570720051</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1682570720051</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
