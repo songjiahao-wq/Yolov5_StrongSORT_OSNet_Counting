@@ -1,6 +1,9 @@
 import argparse
 
 import os
+
+import imutils
+
 # limit the number of cpus used by high performance libraries
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -153,7 +156,7 @@ def run(
     down_count = 0
     arrived_person = {}
     new_id_dict, new_id_index = dict(), 0
-
+    n =0
     for frame_idx, (path, im, im0s, vid_cap, s) in enumerate(dataset):
         t1 = time_sync()
         im = torch.from_numpy(im).to(device)
@@ -205,9 +208,9 @@ def run(
                 strongsort_list[i].tracker.camera_update(prev_frames[i], curr_frames[i])
             # ******************************
             line = [(0, int(0.55 * im0.shape[0])),
-                    (int(im0.shape[1]), int(0.55 * im0.shape[0]))]  # 图像信息的三个通道
+                    (int(im0.shape[1]), int(0.55 * im0.shape[0]))]  # 图像信息的三个通道 线的位置，【x1,y1】[x2,y2]0.55为占图像高的比例
 
-            cv2.line(im0, line[0], line[1], (0, 255, 255), 4)
+            cv2.line(im0, line[0], line[1], (0, 255, 255), 4) #画线
             annotator = Annotator(im0, line_width=2, pil=not ascii)
 
             if det is not None and len(det):
@@ -252,7 +255,7 @@ def run(
                         last_track_id = track_id
                         # draw red line 有人经过线变红
                         total_track2 += 1
-                        cv2.line(im0, line[0], line[1], (0, 0, 255), 10)
+                        cv2.line(im0, line[0], line[1], (0, 0, 255), 10) #撞线标红
 
                         already_counted.append(track_id)  # Set already counted for ID to true.将已计算的 ID 设置为 true
 
@@ -302,7 +305,7 @@ def run(
             # Stream results
             im0 = annotator.result()
 
-            label = "走过黄线人数: {} (向上:{}, 向下:{})".format(str(total_counter), str(up_count), str(down_count))
+            label = "累计计数: {} (向上:{}, 向下:{})".format(str(total_counter), str(up_count), str(down_count))
             t_size = get_size_with_pil(label, 25)
             x1 = 20
             y1 = 100
@@ -310,15 +313,7 @@ def run(
             # cv2.rectangle(im0, (x1 - 1, y1), (x1 + t_size[0] + 10, y1 - t_size[1]), color, 2)
             im0 = put_text_to_cv2_img_with_pil(im0, label, (x1 + 5, y1 - t_size[1] - 2), (255, 0, 0))
 
-            if last_track_id >= 0:
-                label = "行人{}号{}穿过黄线".format(str(last_track_id), str("向上") if angle >= 0 else str('向下'))
-                t_size = get_size_with_pil(label, 25)
-                x1 = 20
-                y1 = 150
-                # color = compute_color_for_labels(2)
-                # cv2.rectangle(ori_img, (x1 - 1, y1), (x1 + t_size[0] + 10, y1 - t_size[1]), color, 2)
-                im0 = put_text_to_cv2_img_with_pil(im0, label, (x1 + 5, y1 - t_size[1] - 2),
-                                                   (255, 0, 0))
+
             if show_vid:
                 cv2.putText(im0, f"{n} {names[int(c)]}{'s' * (n > 1)}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
                             (0, 0, 255), 2)
@@ -343,42 +338,47 @@ def run(
 
             prev_frames[i] = curr_frames[i]
 
-    # Print results
-    t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
-    LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS, %.1fms strong sort update per image at shape {(1, 3, *imgsz)}' % t)
-    if save_txt or save_vid:
-        s = f"\n{len(list(save_dir.glob('tracks/*.txt')))} tracks saved to {save_dir / 'tracks'}" if save_txt else ''
-        LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
-    if update:
-        strip_optimizer(yolo_weights)  # update model (to fix SourceChangeWarning)
-
+        # Print results
+        t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
+        LOGGER.info(
+            f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS, %.1fms strong sort update per image at shape {(1, 3, *imgsz)}' % t)
+        if save_txt or save_vid:
+            s = f"\n{len(list(save_dir.glob('tracks/*.txt')))} tracks saved to {save_dir / 'tracks'}" if save_txt else ''
+            LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
+        if update:
+            strip_optimizer(yolo_weights)  # update model (to fix SourceChangeWarning)
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--yolo-weights', nargs='+', type=str, default=WEIGHTS / 'yolov5s.pt', help='model.pt path(s)')
+    parser.add_argument('--yolo-weights', nargs='+', type=str, default='video/best.pt',
+                        help='model.pt path(s)')
     parser.add_argument('--strong-sort-weights', type=str, default=WEIGHTS / 'osnet_x0_25_msmt17.pth')
     parser.add_argument('--config-strongsort', type=str, default='strong_sort/configs/strong_sort.yaml')
-    parser.add_argument('--source', type=str, default=r'D:\my_job\DATA\data/test.mp4', help='file/dir/URL/glob, 0 for webcam')
-    parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[640], help='inference size h,w')
+    parser.add_argument('--source', type=str, default=r'video/1.mp4',
+                        help='file/dir/URL/glob, 0 for webcam')
+    parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[640],
+                        help='inference size h,w')
     parser.add_argument('--conf-thres', type=float, default=0.5, help='confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.5, help='NMS IoU threshold')
     parser.add_argument('--max-det', type=int, default=1000, help='maximum detections per image')
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
-    parser.add_argument('--show-vid',default=True, action='store_true', help='display tracking video results')
+    parser.add_argument('--show-vid', action='store_true', help='display tracking video results')
     parser.add_argument('--save-txt', action='store_true', help='save results to *.txt')
     parser.add_argument('--save-conf', action='store_true', help='save confidences in --save-txt labels')
     parser.add_argument('--save-crop', action='store_true', help='save cropped prediction boxes')
-    parser.add_argument('--save-vid',default=True, action='store_true', help='save video tracking results')
+    parser.add_argument('--save-vid', default=True, action='store_true', help='save video tracking results')
     parser.add_argument('--nosave', action='store_true', help='do not save images/videos')
     # class 0 is person, 1 is bycicle, 2 is car... 79 is oven
-    parser.add_argument('--classes', default='0',nargs='+', type=int, help='filter by class: --classes 0, or --classes 0 2 3')
+    parser.add_argument('--classes', default='0', nargs='+', type=int,
+                        help='filter by class: --classes 0, or --classes 0 2 3')
     parser.add_argument('--agnostic-nms', action='store_true', help='class-agnostic NMS')
     parser.add_argument('--augment', action='store_true', help='augmented inference')
     parser.add_argument('--visualize', action='store_true', help='visualize features')
     parser.add_argument('--update', action='store_true', help='update all models')
     parser.add_argument('--project', default=ROOT / 'runs/track', help='save results to project/name')
     parser.add_argument('--name', default='exp', help='save results to project/name')
-    parser.add_argument('--exist-ok',default=True, action='store_true', help='existing project/name ok, do not increment')
+    parser.add_argument('--exist-ok', default=True, action='store_true',
+                        help='existing project/name ok, do not increment')
     parser.add_argument('--line-thickness', default=3, type=int, help='bounding box thickness (pixels)')
     parser.add_argument('--hide-labels', default=False, action='store_true', help='hide labels')
     parser.add_argument('--hide-conf', default=False, action='store_true', help='hide confidences')
@@ -389,12 +389,9 @@ def parse_opt():
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
     return opt
 
-
 def main(opt):
     check_requirements(requirements=ROOT / 'requirements.txt', exclude=('tensorboard', 'thop'))
     run(**vars(opt))
-
-
 if __name__ == "__main__":
     opt = parse_opt()
     main(opt)
