@@ -305,7 +305,7 @@ def run(
             # Stream results
             im0 = annotator.result()
 
-            label = "累计计数: {} (向上:{}, 向下:{})".format(str(total_counter), str(up_count), str(down_count))
+            label = "count: {} (up:{}, down:{})".format(str(total_counter), str(up_count), str(down_count))
             t_size = get_size_with_pil(label, 25)
             x1 = 20
             y1 = 100
